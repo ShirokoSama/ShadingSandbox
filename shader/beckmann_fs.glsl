@@ -157,8 +157,8 @@ vec3 sampleBrdf(CoordinateSystem system, vec3 wi, inout vec3 wo, vec2 _sample, f
 	float ux = _sample.x;
 	float uy = _sample.y;
 	if (ux <= ks) {
-		vec3 microfacetNormal = squareToBeckmann(vec2(ux / ks, uy));
-		wo = normalize(reflect(wi, microfacetNormal));
+		vec3 microfacetNormal = toWorld(system, squareToBeckmann(vec2(ux / ks, uy)));
+		wo = normalize(reflect(-wi, microfacetNormal));
 	}
 	else {
 		wo = normalize(toWorld(system, squareToCosineHemisphere(vec2((ux - ks) / (1.0 - ks), uy))));
@@ -196,7 +196,7 @@ void main() {
 			vec3 envColor = texture(environmentMap, wo).rgb;
 			envColor = envColor / (envColor + vec3(1.0));
 			envColor = pow(envColor, vec3(1.0 / 2.2));
-			sampleRslt += coefficient * envColor;
+			sampleRslt += coefficient * envColor * 2.0;
 		}
 		sampleRslt /= SAMPLE_COUNT;
 		result += sampleRslt;
