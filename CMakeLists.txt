@@ -43,6 +43,13 @@ add_executable(sandbox
         tools/CubeMapTexture.h
         src/Scene.h
         src/Skybox.h
+        src/BasePipeline.h
+        src/SimplePipeline.h
+        src/IblPipeline.h
+        src/BasePrePass.h
+        src/IblPrePass.h
+        tools/Cube.h
+        tools/Quad.h
         # source files
         tools/common.cpp
         tools/ResourceManager.cpp
@@ -54,6 +61,11 @@ add_executable(sandbox
         tools/CubeMapTexture.cpp
         src/Scene.cpp
         src/Skybox.cpp
+        src/SimplePipeline.cpp
+        src/IblPipeline.cpp
+        src/IblPrePass.cpp
+        tools/Cube.cpp
+        tools/Quad.cpp
         src/main.cpp
         glad.c
         # shader files
@@ -63,7 +75,7 @@ add_executable(sandbox
         shader/skybox_fs.glsl
         shader/beckmann_fs.glsl
         shader/ggx_fs.glsl
-        shader/equirectangular_to_cubemap_vs.glsl
+        shader/cubemap_vs.glsl
         shader/equirectangular_to_cubemap_fs.glsl)
 target_link_libraries(sandbox glfw3dll opengl32)
 

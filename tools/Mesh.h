@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
-#include <algorithm>
+#include <cmath>
 
 #include "Shader.h"
 #include "Texture2D.h"
@@ -138,18 +138,18 @@ public:
         this->mType = BASIC;
     }
 
-    void SetBrdf(MerlBrdfTexture brdf) {
-        this->brdf = brdf;
+    void SetBrdf(MerlBrdfTexture brdfTexture) {
+        this->brdf = brdfTexture;
         this->mType = MEASURED;
     }
 
-    void SetRoughness(float roughness) {
-        this->roughnesss = roughness;
+    void SetRoughness(float roughnessParam) {
+        this->roughness = roughnessParam;
         this->mType = MICROFACET;
     }
 
-    void SetKd(glm::vec3 kd) {
-        this->kd = kd;
+    void SetMetallic(float metallicParam) {
+        this->metallic = metallicParam;
         this->mType = MICROFACET;
     }
 
@@ -204,8 +204,8 @@ private:
     Texture2D texture;
     MerlBrdfTexture brdf;
     MaterialType mType = BASIC;
-    float roughnesss = 0.5f;
-    glm::vec3 kd = glm::vec3(0.0f);
+    float roughness = 0.5f;
+    float metallic = 1.0f;
 };
 
 

@@ -16,6 +16,7 @@
 #include "../tools/ResourceManager.h"
 #include "../tools/Mesh.h"
 #include "Skybox.h"
+#include "BasePrePass.h"
 
 // screen size
 const unsigned int SCREEN_WIDTH = 1280;
@@ -142,8 +143,10 @@ public:
                         GLfloat roughness = roughnessValue->GetFloat();
                         const Value *fresnelValue = Pointer("/material/fresnel_0").Get(objectValue);
                         glm::vec3 fresnel_0 = parseVector3FromString(fresnelValue->GetString());
-                        const Value *kdValue = Pointer("/material/kd").Get(objectValue);
-                        glm::vec3 kd = parseVector3FromString(kdValue->GetString());
+                        const Value *kdValue = Pointer("/material/albedo").Get(objectValue);
+                        glm::vec3 albedo = parseVector3FromString(kdValue->GetString());
+                        const Value *metallicValue = Pointer("/material/metallic").Get(objectValue);
+                        GLfloat metallic = metallicValue->GetFloat();
                         const Value *texturePathValue = Pointer("/material/texture_file_path").Get(objectValue);
                         if (texturePathValue != nullptr) {
                             std::string texturePath = texturePathValue->GetString();
@@ -155,14 +158,15 @@ public:
                             mesh.SetTexture(texture);
                         }
                         mesh.SetRoughness(roughness);
-                        mesh.SetKd(kd);
+                        mesh.SetMetallic(metallic);
                         {
                             shader.use();
                             shader.setInteger("texSlot", 0);
                             shader.setMatrix4("model", model);
                             shader.setFloat("alpha", roughness);
                             shader.setVector3f("fresnel_0", fresnel_0);
-                            shader.setVector3f("kd", kd);
+                            shader.setVector3f("albedo", albedo);
+                            shader.setFloat("metallic", metallic);
                         }
                     }
                     else {
@@ -211,7 +215,8 @@ public:
                     }
                 };
 
-				shader.setInteger("environmentMap", 2);
+//                shader.setInteger("environmentMap", 1);
+//                assert(glGetError() == GL_NO_ERROR);
                 RenderTargetObject rto = {mesh, shader};
                 rtObjects.push_back(rto);
             }
@@ -219,24 +224,18 @@ public:
         std::cout << "Init " << rtObjects.size() << " render target objects done." << std::endl;
 
         delete jsonTextBuffer;
-
-        // init render scene and uniform attributes
-        init();
-        assert(glGetError() == GL_NO_ERROR);
     }
 
     ~Scene();
 
     Camera *GetCameraPointer() { return camera; }
-    void Draw();
+    void Init(BasePrePass *prePass);
+    void Draw(BasePrePass *prePass);
     void Update(float deltaTime);
     void ProcessKeyBoard(MaterialControl key, float deltaTime);
 
 private:
-    void init();
-
     Camera *camera;
-    Skybox *skybox;
     std::vector<DirLight> dirLights;
     std::vector<PointLight> pointLights;
     std::vector<RenderTargetObject> rtObjects;

@@ -7,6 +7,10 @@
 #include "../tools/Camera.h"
 #include "../tools/ResourceManager.h"
 #include "Scene.h"
+#include "BasePipeline.h"
+#include "SimplePipeline.h"
+#include "IblPipeline.h"
+#include "../tools/Cube.h"
 
 #include <iostream>
 #include <string>
@@ -17,11 +21,17 @@ void scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 void processInput(GLFWwindow *window);
 
 // global variable settings
+// Pipeline
+// choose SimplePipeline build a simple scene with objs in config file and a camera
+// choose IblPipeline build a scene with skybox and ibl support
+BasePipeline *pipeline = nullptr;
 // config file path
 const std::string configFilePath = "config.json";
 // camera
 Camera *camera = nullptr;
+// scene
 Scene *scene = nullptr;
+
 float lastX = (float)SCREEN_WIDTH / 2.0f;
 float lastY = (float)SCREEN_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -55,11 +65,14 @@ int main() {
         return -1;
     }
     glEnable(GL_DEPTH_TEST);
-//    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     try {
         scene = new Scene(configFilePath);
+        pipeline = new IblPipeline(scene);
+        pipeline->Init();
     } catch (const char* msg) {
         std::cout << msg << std::endl;
         return -1;
@@ -76,19 +89,13 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glfwPollEvents();
-        try {
-            scene->Update(deltaTime);
-            scene->Draw();
-        } catch (const char *msg) {
-            std::cout << msg << std::endl;
-            return -1;
-        }
-        scene->Update(deltaTime);
-        scene->Draw();
+        pipeline->Update(deltaTime);
+        pipeline->Draw();
         glfwSwapBuffers(window);
     }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
+    delete pipeline;
     delete scene;
     ResourceManager::clear();
     glfwTerminate();

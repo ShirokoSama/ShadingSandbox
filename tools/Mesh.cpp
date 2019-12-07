@@ -29,8 +29,8 @@ void Mesh::SetupMesh() {
 void Mesh::DrawMesh(Shader *shader) {
     shader->use();
     if (this->mType == MICROFACET) {
-        shader->setFloat("alpha", this->roughnesss);
-        shader->setVector3f("kd", this->kd);
+        shader->setFloat("alpha", this->roughness);
+        shader->setFloat("metallic", this->metallic);
     }
     // Assume texture position and model matrix are constant in this scene
 //    shader->setInteger("texSlot", 0);
@@ -63,20 +63,16 @@ void Mesh::processMaterialControl(MaterialControl key, float deltaTime) {
     if (this->mType == MICROFACET) {
         switch (key) {
             case ROUGHNESS_INCREASE:
-                this->roughnesss = std::min(1.0f, roughnesss + 0.1f * deltaTime);
+                this->roughness = std::min(1.0f, roughness + 0.1f * deltaTime);
                 break;
             case ROUGHNESS_DECREASE:
-                this->roughnesss = std::max(0.0f, roughnesss - 0.1f * deltaTime);
+                this->roughness = std::max(0.0f, roughness - 0.1f * deltaTime);
                 break;
             case KD_INCREASE:
-                this->kd.x = std::min(1.0f, kd.x + 0.1f * deltaTime);
-                this->kd.y = std::min(1.0f, kd.y + 0.1f * deltaTime);
-                this->kd.z = std::min(1.0f, kd.z + 0.1f * deltaTime);
+                this->metallic = std::min(1.0f, metallic + 0.1f * deltaTime);
                 break;
             case KD_DECREASE:
-                this->kd.x = std::max(0.0f, kd.x - 0.1f * deltaTime);
-                this->kd.y = std::max(0.0f, kd.y - 0.1f * deltaTime);
-                this->kd.z = std::max(0.0f, kd.z - 0.1f * deltaTime);
+                this->metallic = std::max(0.0f, metallic - 0.1f * deltaTime);
                 break;
         }
     }

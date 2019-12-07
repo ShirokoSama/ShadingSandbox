@@ -6,15 +6,11 @@
 
 Scene::~Scene() {
     delete camera;
-    delete skybox;
     for (auto& rto : rtObjects)
         rto.mesh.Clear();
 }
 
-void Scene::init() {
-    // init skybox
-    this->skybox = new Skybox("resource/hdr/newport_loft.hdr");
-
+void Scene::Init(BasePrePass *prePass) {
     // get the relevant block indices in each shader object
     // and link each shader's uniform block to this uniform binding point
     for (auto& rto : this->rtObjects) {
@@ -22,10 +18,8 @@ void Scene::init() {
         glUniformBlockBinding(rto.shader.ID, vpUniformBlockIndex, 0);
         GLuint lightsUniformBlockIndex = glGetUniformBlockIndex(rto.shader.ID, "Lights");
         glUniformBlockBinding(rto.shader.ID, lightsUniformBlockIndex, 1);
+        prePass->SetShaderUniform(rto.shader);
     }
-    Shader skyboxShader = ResourceManager::getShader("skyboxShader");
-    GLuint vpUniformBlockIndex = glGetUniformBlockIndex(skyboxShader.ID, "Matrices");
-    glUniformBlockBinding(skyboxShader.ID, vpUniformBlockIndex, 0);
 
     // generate uniform buffer object for global blocks
     // bind position 0
@@ -66,9 +60,11 @@ void Scene::init() {
                 &this->dirLights[0]
                 );
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    assert(glGetError() == GL_NO_ERROR);
 }
 
-void Scene::Draw() {
+void Scene::Draw(BasePrePass *prePass) {
     glBindBuffer(GL_UNIFORM_BUFFER, uboGlobalBlock);
     glm::mat4 view = this->camera->GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(this->camera->Zoom), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
@@ -78,11 +74,9 @@ void Scene::Draw() {
     for (auto& rto : rtObjects) {
         rto.shader.setVector3f("viewPos", camera->Position, true);
 		rto.shader.use();
-		glActiveTexture(GL_TEXTURE2);
-		this->skybox->BindEnvironmentCubeMap();
+		prePass->BindShaderUniform();
         rto.mesh.DrawMesh(&rto.shader);
     }
-    this->skybox->Draw();
     assert(glGetError() == GL_NO_ERROR);
 }
 
@@ -92,6 +86,6 @@ void Scene::Update(float deltaTime) {
 }
 
 void Scene::ProcessKeyBoard(MaterialControl key, float deltaTime) {
-    if (!rtObjects.empty())
-        rtObjects[0].mesh.processMaterialControl(key, deltaTime);
+    for (auto &rto: rtObjects)
+        rto.mesh.processMaterialControl(key, deltaTime);
 }
